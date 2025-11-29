@@ -60,3 +60,9 @@ Thumbs.db
 # Docker
 *.dockerignore
 
+# Uploads
+uploads/
+*.xlsx
+*.xls
+*.csv
+

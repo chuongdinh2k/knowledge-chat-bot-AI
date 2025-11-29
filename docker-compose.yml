@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: knowledge-chat-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-knowledge_chat}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - knowledge-chat-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: knowledge-chat-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - knowledge-chat-network
+
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: infra/docker/Dockerfile
+  #   container_name: knowledge-chat-api
+  #   environment:
+  #     - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-knowledge_chat}
+  #     - REDIS_URL=redis://redis:6379/0
+  #     - CELERY_BROKER_URL=redis://redis:6379/0
+  #     - CELERY_RESULT_BACKEND=redis://redis:6379/0
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./src:/app/src
+  #     - ./uploads:/app/uploads
+  #   networks:
+  #     - knowledge-chat-network
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile
+    container_name: knowledge-chat-celery-worker
+    command: celery -A src.celery_app worker --loglevel=info --concurrency=4
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-knowledge_chat}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./uploads:/app/uploads
+    networks:
+      - knowledge-chat-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  knowledge-chat-network:
+    driver: bridge
+

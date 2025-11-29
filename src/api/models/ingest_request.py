@@ -15,4 +15,5 @@ class IngestResponse(BaseModel):
     document_id: str
     status: str
     message: str
+    task_id: Optional[str] = None
 

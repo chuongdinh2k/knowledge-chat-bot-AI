@@ -21,9 +21,17 @@ class Settings(BaseSettings):
     # Vector Store Settings
     vector_dimension: int = 1536
     
+    # Redis Settings
+    redis_url: str = "redis://localhost:6379/0"
+    
+    # Celery Settings
+    celery_broker_url: str = "redis://localhost:6379/0"
+    celery_result_backend: str = "redis://localhost:6379/0"
+    
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"
 
 
 settings = Settings()
