@@ -13,7 +13,7 @@ class IngestionService:
     
     def __init__(self):
         """Initialize the ingestion service."""
-        self.upload_dir = os.getenv("UPLOAD_DIR", "/app/uploads")
+        self.upload_dir = os.getenv("UPLOAD_DIR", "./uploads")
         os.makedirs(self.upload_dir, exist_ok=True)
     
     async def ingest_file(

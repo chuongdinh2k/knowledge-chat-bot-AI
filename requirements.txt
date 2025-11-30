@@ -14,3 +14,4 @@ xlrd==2.0.1
 psycopg2-binary==2.9.9
 pgvector==0.2.1
 python-multipart==0.0.6
+openai>=1.0.0

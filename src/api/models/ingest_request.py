@@ -16,4 +16,4 @@ class IngestResponse(BaseModel):
     status: str
     message: str
     task_id: Optional[str] = None
-
+    api_version: Optional[str] = "v1"  # Add version to response
